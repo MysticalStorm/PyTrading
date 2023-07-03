@@ -41,9 +41,14 @@ class Platform(ABC):
 
     @property
     @abstractmethod
-    async def all_tickers(self) -> [str]:
+    async def all_tickers(self) -> [Asset]:
+        pass
+
+    @property
+    @abstractmethod
+    async def tokens(self) -> [Asset]:
         pass
 
     @abstractmethod
-    async def connect(self):
+    def subscribe(self):
         pass

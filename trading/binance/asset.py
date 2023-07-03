@@ -2,7 +2,7 @@ from ..interface import Asset
 
 
 class BinanceAsset(Asset):
-    def __init__(self, name: str, available_balance: str, locked: str):
+    def __init__(self, name: str, available_balance: str = "0", locked: str = None):
         self._name = name
         self._available_balance = available_balance
         self._locked = locked

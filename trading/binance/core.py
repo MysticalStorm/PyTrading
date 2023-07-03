@@ -14,7 +14,7 @@ class Binance(Platform):
     def __init__(self):
         self._balance = None
 
-        self._async_client = AsyncClient(api_key, secret_key, testnet=True)
+        self._async_client = AsyncClient(api_key, secret_key, testnet=False)
         self._socket_manager = BinanceSocketManager(client=self._async_client)
 
     @property
@@ -37,21 +37,38 @@ class Binance(Platform):
         return self._balance
 
     @property
-    async def all_tickers(self) -> [str]:
+    async def all_tickers(self) -> [BinanceAsset]:
+        tickers = await self._async_client.get_all_tickers()
+        return [BinanceAsset(name=symbol_info['symbol']) for symbol_info in tickers]
+
+    @property
+    async def tokens(self) -> [BinanceAsset]:
         info = await self._async_client.get_exchange_info()
-        print(info)
+        result = set([])
+        for symbol_info in info["symbols"]:
+            result.add(symbol_info["baseAsset"])
+            result.add(symbol_info["quoteAsset"])
+        return [BinanceAsset(name=token) for token in result]
 
-        info2 = await self._async_client.get_all_tickers()
-        print(info2)
+    __stop = False
 
-        return [symbol_info['symbol'] for symbol_info in info['symbols']]
+    def stop(self):
+        self.__stop = True
 
-    async def connect(self):
+    async def subscribe(self):
         try:
             async with self._socket_manager.kline_socket("ethusdt") as ts:
-                print("Socket created", ts)
-                res = await asyncio.wait_for(ts.recv(), timeout=5.0)  # timeout set to 5 seconds
-                print(f'recv {res}')
+                while 1:
+                    print("Socket created", ts)
+                    res = await asyncio.wait_for(ts.recv(), timeout=60.0)  # timeout set to 5 seconds
+                    print(f'recv {res}')
+
+                    import threading
+                    print(threading.current_thread())
+
+                    if self.__stop:
+                        print("HELL YEAH I WANT RETURN")
+                        break
 
             print("Through socket creation")
         except asyncio.TimeoutError:

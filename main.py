@@ -1,20 +1,19 @@
-import asyncio
+from quart import Quart
 from trading.binance.core import Binance
-from concurrent.futures import ThreadPoolExecutor
+from trading.trading_manager import TradingManager
+from web.core import WebCore
+from web.database.core import Database
 
-async def main():
+def main(app):
     binance1 = Binance()
-    binance2 = Binance()
-
-    print(await binance1.all_tickers)
-
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        await asyncio.gather(
-            loop.run_in_executor(executor, asyncio.run, binance1.connect()),
-            loop.run_in_executor(executor, asyncio.run, binance2.connect())
-        )
+    database = Database(app)
+    manager = TradingManager(binance1, database)
+    web = WebCore(app, database, manager)
+    web.run()
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    app = Quart(__name__, template_folder="web/templates/")
+    #loop = asyncio.get_event_loop()
+    #loop.run_until_complete(main())
+    main(app)
     print("Finish")
