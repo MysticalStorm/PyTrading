@@ -2,7 +2,9 @@ from quart import Quart
 from trading.binance.core import Binance
 from trading.trading_manager import TradingManager
 from web.core import WebCore
-from web.database.core import Database
+from database.core import Database
+
+app = Quart(__name__, template_folder="web/templates/")
 
 def main(app):
     binance1 = Binance()
@@ -12,8 +14,4 @@ def main(app):
     web.run()
 
 if __name__ == "__main__":
-    app = Quart(__name__, template_folder="web/templates/")
-    #loop = asyncio.get_event_loop()
-    #loop.run_until_complete(main())
     main(app)
-    print("Finish")

@@ -1,7 +1,14 @@
 <!DOCTYPE html>
 <html>
 <body>
+    <script>
+        var source = new EventSource("/stream");
+        source.onmessage = function(event) {
+            document.getElementById("number").innerHTML = event.data;
+        }
+    </script>
     <h1>Welcome to the Binance subscriber!</h1>
+    <h1 id="number">Loading...</h1>
     <form method="POST">
         <button type="submit" name="action" value="Subscribe">Subscribe</button>
     </form>

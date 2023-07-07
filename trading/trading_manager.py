@@ -1,6 +1,6 @@
 from .interface import *
 import asyncio
-from web.database.core import Database
+from database.core import Database
 
 class TradingManager:
     def __init__(self, platform: Platform, db: Database):
