@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}?v=1.0.3">
-    <script src="{{ url_for('static', filename='js/main.js') }}?v=1.0.14"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}?v={{ css_hash }}">
+    <script src="{{ url_for('static', filename='js/main.js') }}?v={{ js_hash  }}"></script>
 </head>
 <body>
     <h1>Welcome to the Binance subscriber!</h1>
