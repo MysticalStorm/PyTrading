@@ -5,19 +5,24 @@ from sqlalchemy import Integer, String, Column
 from sqlalchemy.inspection import inspect
 from quart_sqlalchemy.extension import Table, MetaData
 import config.db as config
-# from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declared_attr
 from quart_sqlalchemy.extension import declarative_base
 from functools import reduce
 import os
-import concurrent.futures
 
 
 class _DBModel(object):
     def save(self):
         db.session.merge(self)
         db.session.commit()
+
+    async def all(self):
+        async def items():
+            async with db.app.app_context():
+                users = db.session.execute(db.select(type(self)))
+                return users.scalars().all()
+
+        return await asyncio.create_task(items())
 
     @declared_attr
     def __tablename__(cls):
@@ -47,7 +52,7 @@ class _DBModel(object):
 Model = declarative_base(cls=_DBModel)
 db = SQLAlchemy(model_class=Model)
 
-from .models.message import Message
+from .models.token import Token
 
 
 class Database:
@@ -60,12 +65,12 @@ class Database:
 
     async def before_serving(self):
         async with self.app.app_context():
-            await Message.create_table(self)
+            await Token.create_table(self)
 
     async def save(self, message):
         async def async_save():
             async with self.app.app_context():
-                new_message = Message(content=message)
+                new_message = Token(content=message)
                 new_message.save()
 
         return await asyncio.create_task(async_save())
@@ -85,7 +90,7 @@ class Database:
     async def get_all_messages(self):
         async def messages():
             async with self.app.app_context():
-                users = self.db.session.execute(self.db.select(Message))
+                users = self.db.session.execute(self.db.select(Token))
                 return users.scalars().all()
 
         return await asyncio.create_task(messages())

@@ -6,14 +6,14 @@ from .asset import BinanceAsset
 from .balance import BinanceBalance
 import json
 import asyncio
+from .models.kline import BinanceKLine
 
 
 class Binance(Platform):
-    active_sockets = []
+    _klines = []
 
     def __init__(self):
         self._balance = None
-
         self._async_client = AsyncClient(api_key, secret_key, testnet=False)
         self._socket_manager = BinanceSocketManager(client=self._async_client)
 
@@ -38,6 +38,7 @@ class Binance(Platform):
 
     @property
     async def all_tickers(self) -> [BinanceAsset]:
+        print(self._async_client.loop)
         tickers = await self._async_client.get_all_tickers()
         return [BinanceAsset(name=symbol_info['symbol']) for symbol_info in tickers]
 
@@ -50,28 +51,23 @@ class Binance(Platform):
             result.add(symbol_info["quoteAsset"])
         return [BinanceAsset(name=token) for token in result]
 
-    __stop = False
+    @property
+    async def klines(self) -> [BinanceKLine]:
+        return self._klines
 
-    def stop(self):
-        self.__stop = True
-
-    async def subscribe(self):
+    async def subscribe(self, ticker: str):
         try:
-            async with self._socket_manager.kline_socket("ethusdt") as ts:
+            async with self._socket_manager.kline_socket(ticker) as ts:
                 while 1:
-                    print("Socket created", ts)
-                    res = await asyncio.wait_for(ts.recv(), timeout=60.0)  # timeout set to 5 seconds
-                    print(f'recv {res}')
-
-                    import threading
-                    print(threading.current_thread())
-
-                    if self.__stop:
-                        print("HELL YEAH I WANT RETURN")
-                        break
-
-            print("Through socket creation")
+                    print(f"Socket created {ticker}", ts)
+                    res = await asyncio.wait_for(ts.recv(), timeout=60.0)
+                    kline = BinanceKLine(res)
+                    self._klines.append(kline)
+                    print(f'recv {kline}')
+        except asyncio.CancelledError:
+            print(f"Cancelled {ticker}")
         except asyncio.TimeoutError:
-            print("Timeout exceeded while waiting for data from the socket.")
+            print(f"Timeout exceeded while waiting for data from the socket. {ticker}")
         finally:
+            print(f"Finally {ticker}")
             await self._async_client.close_connection()

@@ -1,17 +1,24 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}?v=1.0.3">
+    <script src="{{ url_for('static', filename='js/main.js') }}?v=1.0.14"></script>
+</head>
 <body>
-    <script>
-        var source = new EventSource("/stream");
-        source.onmessage = function(event) {
-            document.getElementById("number").innerHTML = event.data;
-        }
-    </script>
     <h1>Welcome to the Binance subscriber!</h1>
     <h1 id="number">Loading...</h1>
-    <form method="POST">
-        <button type="submit" name="action" value="Subscribe">Subscribe</button>
-    </form>
     <p>{{ message }}</p>
+
+    <h1>Currencies and Prices</h1>
+    <ul>
+    {% for currency, price in currencies %}
+        <li>
+            <button class="ticker-button" data-currency="{{ currency }}">
+                <span class="ticker-name">{{ currency }}</span>
+                <span class="ticker-price">{{ price }}</span>
+            </button>
+        </li>
+    {% endfor %}
+    </ul>
 </body>
-</html>,
+</html>

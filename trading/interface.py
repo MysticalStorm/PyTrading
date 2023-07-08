@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from .models.kline import KLine
 
 
 class Asset(ABC):
@@ -36,6 +37,11 @@ class Balance(ABC):
 class Platform(ABC):
     @property
     @abstractmethod
+    async def klines(self) -> [KLine]:
+        pass
+
+    @property
+    @abstractmethod
     async def balance(self) -> Balance:
         pass
 
@@ -50,5 +56,5 @@ class Platform(ABC):
         pass
 
     @abstractmethod
-    def subscribe(self):
+    def subscribe(self, ticker: str):
         pass

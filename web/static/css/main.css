@@ -1,0 +1,9 @@
+.price {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.ticker-price {
+  color: green;
+}
