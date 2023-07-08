@@ -2,6 +2,7 @@ import asyncio
 
 from quart_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String, Column
+from sqlalchemy.inspection import inspect
 from quart_sqlalchemy.extension import Table, MetaData
 import config.db as config
 # from sqlalchemy.ext.declarative import declarative_base
@@ -10,6 +11,8 @@ from sqlalchemy.ext.declarative import declared_attr
 from quart_sqlalchemy.extension import declarative_base
 from functools import reduce
 import os
+import concurrent.futures
+
 
 class _DBModel(object):
     def save(self):
@@ -36,13 +39,15 @@ class _DBModel(object):
         return not self.__eq__(other)
 
     @classmethod
-    def create_table(cls):
+    async def create_table(cls, database):
         if hasattr(cls, "__table__"):
-            db.create_table(cls.__table__)
+            await database.async_create_table(cls.__table__)
 
 
 Model = declarative_base(cls=_DBModel)
 db = SQLAlchemy(model_class=Model)
+
+from .models.message import Message
 
 
 class Database:
@@ -55,33 +60,32 @@ class Database:
 
     async def before_serving(self):
         async with self.app.app_context():
-            self.db.create_all()
+            await Message.create_table(self)
 
     async def save(self, message):
-        new_message = Message(content=message)
-        self.db.session.add(new_message)
-        self.db.session.commit()
+        async def async_save():
+            async with self.app.app_context():
+                new_message = Message(content=message)
+                new_message.save()
+
+        return await asyncio.create_task(async_save())
 
     def create_all_meta(self):
         Model.metadata.create_all(self.db.engine)
 
-    async def create_table(self, table: Table):
-        def ctable():
-            table.drop(self.db.engine)
-            table.create(self.db.engine)
+    async def async_create_table(self, table: Table):
+        async def create_table():
+            async with self.app.app_context():
+                if inspect(self.db.engine).has_table(table.name):
+                    table.drop(self.db.engine)
+                table.create(self.db.engine)
 
-        return await asyncio.get_running_loop().run_in_executor(
-            None, ctable
-        )
+        return await asyncio.create_task(create_table())
 
     async def get_all_messages(self):
-        async with self.app.app_context():
-            users = self.db.session.execute(self.db.select(Message))
-            return users.scalars().all()
+        async def messages():
+            async with self.app.app_context():
+                users = self.db.session.execute(self.db.select(Message))
+                return users.scalars().all()
 
-
-class Message(Model):
-    __tablename__ = "Messages"
-
-    id = Column(Integer, primary_key=True)
-    content = Column(String(500))
+        return await asyncio.create_task(messages())

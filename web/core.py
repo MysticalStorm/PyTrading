@@ -36,7 +36,7 @@ class WebCore:
                     # Here you would usually pull updates from your application.
                     # Instead, we're going to generate a random number every second.
                     yield 'data: {}\n\n'.format(time.asctime())
-                    await asyncio.sleep(5)
+                    await asyncio.sleep(1)
 
             response = await make_response(event_stream(), {'Content-Type': 'text/event-stream'})
             response.timeout = None  # No timeout for this route
