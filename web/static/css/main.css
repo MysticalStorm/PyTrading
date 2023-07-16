@@ -1,9 +1,79 @@
-.price {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
+/* main.css */
+
+/* main.css */
+
+.ticker-button {
+    background-color: #808080; /* gray */
+    border: none;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 25px; /* make the button corners rounded */
+    transition-duration: 0.4s;
 }
 
-.ticker-price {
-  color: green;
+.ticker-button:hover {
+    background-color: #666666; /* darker gray on hover */
+}
+
+.add-button {
+    background-color: #006400; /* dark green */
+    color: white;
+    border: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+    font-size: 12px;
+    margin-left: 5px;
+    cursor: pointer;
+    border-radius: 50%; /* make the button a circle */
+    transition-duration: 0.4s;
+    padding: 5px; /* Padding around the "+" sign */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+    width: 30px; /* specify width */
+    height: 30px; /* specify height */
+}
+
+.remove-button {
+    background-color: #006400; /* dark green */
+    color: white;
+    border: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+    font-size: 12px;
+    margin-left: 5px;
+    cursor: pointer;
+    border-radius: 5%; /* make the button a circle */
+    transition-duration: 0.4s;
+    padding: 5px; /* Padding around the "+" sign */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+    width: 30px; /* specify width */
+    height: 30px; /* specify height */
+}
+
+.add-button:hover {
+    background-color: #008000; /* green on hover */
+    /* Add rotation animation on hover */
+    animation: spin 1s;
+}
+
+.remove-button:hover {
+    background-color: #C80000; /* green on hover */
+}
+
+/* Spin animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
+    100% { transform: rotate(360deg); }
 }

@@ -4,6 +4,8 @@ from quart import Quart, render_template, request, stream_with_context, make_res
 from database.core import Database
 import json
 import uvicorn
+import hypercorn
+from hypercorn.asyncio import serve
 
 from trading.binance.core import Binance
 from trading.trading_manager import TradingManager
@@ -12,8 +14,6 @@ from typing import Optional
 import hashlib
 import os
 
-
-# https://pgjones.gitlab.io/quart/how_to_guides/sync_code.html
 
 def calculate_file_hash(file_path):
     with open(file_path, 'rb') as file:
@@ -33,6 +33,16 @@ class WebCore:
         async def startup():
             binance1 = Binance()
             self.manager = TradingManager(binance1, self.db)
+
+        @self.app.route('/search')
+        async def search():
+            query = request.args.get('q', default="", type=str)
+            query = query.lower()
+
+            tickers = await self.manager.tickers()
+            matched_tickers = [ticker.name for ticker in tickers if query in ticker.name.lower()]
+
+            return {"data": matched_tickers}
 
         @self.app.route('/subscribe', methods=['POST'])
         async def subscribe():
@@ -65,8 +75,6 @@ class WebCore:
             message = await self.db.get_all_messages()
             if message:
                 message = message[0].content
-            tickers = await self.manager.tickers()
-            currencies = [(ticker.name, "") for ticker in tickers]
 
             # Calculate the hash of the CSS file
             css_path = os.path.join(app.static_folder, 'css', 'main.css')
@@ -76,8 +84,7 @@ class WebCore:
             js_path = os.path.join(app.static_folder, 'js', 'main.js')
             js_hash = calculate_file_hash(js_path)
 
-            return await render_template('home.html', message=message, currencies=currencies, css_hash=css_hash,
-                                         js_hash=js_hash)
+            return await render_template('home.html', message=message, css_hash=css_hash, js_hash=js_hash)
 
         @app.route('/stream')
         async def stream():
@@ -104,7 +111,13 @@ class WebCore:
             response.timeout = None  # No timeout for this route
             return response
 
-    def run(self):
-        loop = asyncio.get_event_loop()
-        # self.app.run(host="127.0.0.1", port=5000, loop=loop)
-        uvicorn.run(self.app, host="127.0.0.1", port=5000, loop="asyncio")
+    def run_hypercorn(self):
+        from hypercorn.config import Config
+        from .logs.core import Logger
+        self.app.asgi_app = Logger(self.app.asgi_app)
+        config = Config()
+        config.bind = ["localhost:5000"]
+        asyncio.run(serve(self.app, config))
+
+    def run_uvicorn(self):
+        uvicorn.run("main:app", host="127.0.0.1", port=5000, loop="asyncio", reload=True, reload_includes=["*.html", "*.js"])

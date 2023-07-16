@@ -6,5 +6,18 @@
     </content>
     <orderEntry type="jdk" jdkName="Python 3.7 (PyTrading)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="@types/jquery" level="application" />
+    <orderEntry type="library" name="JQuery" level="project" />
+    <orderEntry type="library" name="@types/jquery-ajax-chain" level="application" />
+    <orderEntry type="library" name="jquery" level="application" />
+    <orderEntry type="library" name="jquery" level="application" />
+  </component>
+  <component name="TemplatesService">
+    <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
+    <option name="TEMPLATE_FOLDERS">
+      <list>
+        <option value="$MODULE_DIR$/web/templates" />
+      </list>
+    </option>
   </component>
 </module>

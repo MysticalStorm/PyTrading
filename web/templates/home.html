@@ -1,24 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="EN">
 <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}?v={{ css_hash }}">
     <script src="{{ url_for('static', filename='js/main.js') }}?v={{ js_hash  }}"></script>
+    <title>Trading</title>
 </head>
 <body>
     <h1>Welcome to the Binance subscriber!</h1>
     <h1 id="number">Loading...</h1>
     <p>{{ message }}</p>
+    <div id="search-container">
+        <label for="search-box"></label><input id="search-box" type="text" placeholder="Search for ticker..">
+        <div id="search-results"></div>
+    </div>
 
     <h1>Currencies and Prices</h1>
-    <ul>
-    {% for currency, price in currencies %}
-        <li>
-            <button class="ticker-button" data-currency="{{ currency }}">
-                <span class="ticker-name">{{ currency }}</span>
-                <span class="ticker-price">{{ price }}</span>
-            </button>
-        </li>
-    {% endfor %}
+    <ul id="added-tickers">
     </ul>
 </body>
 </html>

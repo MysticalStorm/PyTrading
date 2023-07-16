@@ -38,7 +38,6 @@ class Binance(Platform):
 
     @property
     async def all_tickers(self) -> [BinanceAsset]:
-        print(self._async_client.loop)
         tickers = await self._async_client.get_all_tickers()
         return [BinanceAsset(name=symbol_info['symbol']) for symbol_info in tickers]
 
@@ -70,4 +69,4 @@ class Binance(Platform):
             print(f"Timeout exceeded while waiting for data from the socket. {ticker}")
         finally:
             print(f"Finally {ticker}")
-            await self._async_client.close_connection()
+            # await self._async_client.close_connection()
