@@ -120,4 +120,5 @@ class WebCore:
         asyncio.run(serve(self.app, config))
 
     def run_uvicorn(self):
-        uvicorn.run("main:app", host="127.0.0.1", port=5000, loop="asyncio", reload=True, reload_includes=["*.html", "*.js"])
+        # , reload_includes=["*.html", "*.js", "*.css"]
+        uvicorn.run("main:app", host="127.0.0.1", port=5002, loop="asyncio", reload=True)

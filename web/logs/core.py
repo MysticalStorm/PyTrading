@@ -3,6 +3,7 @@ class Logger:
         self.app = app
 
     async def __call__(self, scope, receive, send):
+        print(scope)
         if scope['type'] == 'http':
             client = scope['client']
             method = scope['method']

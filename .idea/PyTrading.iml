@@ -6,10 +6,12 @@
     </content>
     <orderEntry type="jdk" jdkName="Python 3.7 (PyTrading)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="@types/jquery" level="application" />
     <orderEntry type="library" name="JQuery" level="project" />
+    <orderEntry type="library" name="@types/jquery" level="application" />
+    <orderEntry type="library" name="rxjs" level="application" />
     <orderEntry type="library" name="@types/jquery-ajax-chain" level="application" />
     <orderEntry type="library" name="jquery" level="application" />
+    <orderEntry type="library" name="rxjs-jquery" level="application" />
     <orderEntry type="library" name="jquery" level="application" />
   </component>
   <component name="TemplatesService">

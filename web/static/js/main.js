@@ -1,16 +1,19 @@
-var source = new EventSource("/stream");
+let source = new EventSource("/stream");
+const { fromEvent, from } = rxjs;
+const { debounceTime, map, switchMap, catchError, distinctUntilChanged } = rxjs.operators;
+
 
 source.onmessage = function(event) {
-  var numberElement = document.getElementById("number");
-  var eventData = JSON.parse(event.data);
+  let numberElement = document.getElementById("number");
+  let eventData = JSON.parse(event.data);
   numberElement.innerHTML = eventData.open;
 
   // Update ticker button with the received price
-  var tickerButtons = document.getElementsByClassName("ticker-button");
-  for (var i = 0; i < tickerButtons.length; i++) {
-    var button = tickerButtons[i];
-    var currency = button.getAttribute("data-currency");
-    var tickerPriceElement = button.querySelector(".ticker-price");
+  let tickerButtons = document.getElementsByClassName("ticker-button");
+  for (let i = 0; i < tickerButtons.length; i++) {
+    let button = tickerButtons[i];
+    let currency = button.getAttribute("data-currency");
+    let tickerPriceElement = button.querySelector(".ticker-price");
 
     if (currency === eventData.symbol) {
       tickerPriceElement.innerHTML = eventData.open;
@@ -19,19 +22,36 @@ source.onmessage = function(event) {
 };
 
 $(function () {
-    console.log("DOM LOADED2");
-})
+    let subscribedTickers = new Set();
+    let searchBox = $('#search-box');
+    let searchResults = $('#search-results');
+    let addedTickers = $('#added-tickers');
 
-$(document).ready(function() {
-    console.log("DOM LOADED1");
+    function searchWikipedia(query) {
+        return from($.ajax({
+            url: '/search',
+            method: "GET",
+            data: { q: query },
+        })).pipe();
+    }
 
-    var subscribedTickers = new Set();
-    var searchBox = $('#search-box');
-    var searchResults = $('#search-results');
-    var addedTickers = $('#added-tickers');
+    let throttledInput = fromEvent(searchBox, 'keyup').pipe(
+        map(event => event.target.value),
+        debounceTime(500),
+        distinctUntilChanged(),
+        switchMap(text => searchWikipedia(text))
+    )
 
+    throttledInput.subscribe( data => {
+        data.data.forEach(function (currency) {
+                let tickerButton = new AddTickerButton(currency);
+                searchResults.append(tickerButton.element);
+        });
+    });
+
+ /*
     searchBox.on('input', function() {
-        var query = this.value.toLowerCase();
+        let query = this.value.toLowerCase();
         if (query === '') {
             searchResults.hide();
             return;
@@ -39,84 +59,76 @@ $(document).ready(function() {
             searchResults.show();
         }
 
-        // Clear previous results
-        searchResults.empty();
+        function search(data) {
+            searchResults.empty();
+            data.data.forEach(function (currency) {
+                let tickerButton = new AddTickerButton(currency);
+                searchResults.append(tickerButton.element);
+            });
+        }
 
         // Fetch matching tickers from server
         $.ajax({
             url: '/search',
             method: 'GET',
             data: { q: query },
-            success: function(data) {
-                console.log(data)
-                data.data.forEach(function(currency) {
-                    let tickerButton = new TickerButton(currency);
-                    searchResults.append(tickerButton.element);
-                });
-            }
+            success: search
         });
     });
+
+  */
 
     class TickerButton {
       constructor(currency) {
         this.currency = currency;
         this.element = this.createButtonElement();
-        this.setupEventListeners();
+        this.setupEventListeners(currency);
       }
 
       createButtonElement() {
         const button = $('<button>').addClass('ticker-button').attr('data-currency', this.currency);
         const nameElement = $('<span>').addClass('ticker-name').text(this.currency);
         const priceElement = $('<span>').addClass('ticker-price');
-        const addButton = $('<button>').addClass('add-button').text('+');
-        const removeButton = $('<button>').addClass('remove-button').text('-');
-        button.append(nameElement, priceElement, addButton);
+        button.append(nameElement, priceElement);
         return button;
       }
 
-      setupEventListeners() {
+      setupEventListeners(currency) {
         this.element.on('click', '.remove-button', () => {
           this.element.remove();
-          // Perform other necessary operations when the remove button is clicked
+          if (subscribedTickers.has(currency)) {
+              subscribedTickers.delete(currency);
+              unsubscribeFromTicker(currency);
+          }
         });
 
         this.element.on('click', '.add-button', () => {
           this.element.remove();
-          // Perform other necessary operations when the remove button is clicked
+          if (!subscribedTickers.has(currency)) {
+            subscribedTickers.add(currency)
+            subscribeToTicker(currency)
+          }
         });
       }
     }
 
-/*
-    searchResults.on('click', '.add-button', function() {
-      var button = $(this).parent();
-      var currency = button.data('currency');
-
-      if (!subscribedTickers.has(currency)) {
-        subscribedTickers.add(currency);
-        subscribeToTicker(currency);
-
-        var tickerButton = new TickerButton(currency);
-        addedTickers.append(tickerButton.element);
-
-        button.remove();
-      }
-    });
-
-    addedTickers.on('click', '.remove-button', function() {
-        var button = $(this).parent();
-        var currency = button.data('currency');
-
-        // Check if ticker is already subscribed to remove it
-        if (subscribedTickers.has(currency)) {
-            subscribedTickers.delete(currency);
-            unsubscribeFromTicker(currency);
-
-            // Remove this ticker from the "added-tickers" list
-            button.remove();
+    class AddTickerButton extends TickerButton {
+        createButtonElement() {
+            let button = super.createButtonElement();
+            const addButton = $('<button>').addClass('add-button').text('+');
+            button.append(addButton)
+            return button
         }
-    });
-*/
+    }
+
+    class RemoveTickerButton extends TickerButton {
+        createButtonElement() {
+            let button = super.createButtonElement();
+            const removeButton = $('<button>').addClass('remove-button').text('-');
+            button.append(removeButton)
+            return button
+        }
+    }
 
     function subscribeToTicker(symbol) {
         // Send subscription request to the server
@@ -129,6 +141,8 @@ $(document).ready(function() {
         })
         .then(function(response) {
             if (response.ok) {
+                let ticker = new RemoveTickerButton(symbol)
+                addedTickers.append(ticker.element)
                 console.log("Subscription request successful");
             } else {
                 console.error("Subscription request failed");
