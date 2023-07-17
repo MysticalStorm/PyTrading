@@ -9,8 +9,6 @@
     <orderEntry type="library" name="JQuery" level="project" />
     <orderEntry type="library" name="@types/jquery" level="application" />
     <orderEntry type="library" name="@types/jquery-ajax-chain" level="application" />
-    <orderEntry type="library" name="rxjs-jquery" level="application" />
-    <orderEntry type="library" name="rxjs-dom" level="application" />
     <orderEntry type="library" name="rxjs" level="application" />
     <orderEntry type="library" name="jquery" level="application" />
     <orderEntry type="library" name="jquery" level="application" />
