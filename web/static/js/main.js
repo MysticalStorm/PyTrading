@@ -1,25 +1,5 @@
-let source = new EventSource("/stream");
-const { fromEvent, from } = rxjs;
-const { debounceTime, map, switchMap, catchError, distinctUntilChanged } = rxjs.operators;
-
-
-source.onmessage = function(event) {
-  let numberElement = document.getElementById("number");
-  let eventData = JSON.parse(event.data);
-  numberElement.innerHTML = eventData.open;
-
-  // Update ticker button with the received price
-  let tickerButtons = document.getElementsByClassName("ticker-button");
-  for (let i = 0; i < tickerButtons.length; i++) {
-    let button = tickerButtons[i];
-    let currency = button.getAttribute("data-currency");
-    let tickerPriceElement = button.querySelector(".ticker-price");
-
-    if (currency === eventData.symbol) {
-      tickerPriceElement.innerHTML = eventData.open;
-    }
-  }
-};
+const { fromEvent, from, EMPTY } = rxjs;
+const { debounceTime, map, switchMap, catchError, distinctUntilChanged, tap, filter } = rxjs.operators;
 
 $(function () {
     let subscribedTickers = new Set();
@@ -27,7 +7,33 @@ $(function () {
     let searchResults = $('#search-results');
     let addedTickers = $('#added-tickers');
 
-    function searchWikipedia(query) {
+    let source = new EventSource("/stream");
+    let sourcePublisher = fromEvent(source, 'message').pipe(
+        map(event => JSON.parse(event.data))
+    )
+
+    sourcePublisher.subscribe(data => {
+        let dataArray = Object.entries(data).map(([key, value]) => `${key} - ${value?.open}`);
+        $('#number').html(dataArray.join("<br/>")); // joining array elements with break line
+
+        addedTickers.find('.ticker-button').each(function() {
+            let button = $(this);
+            let currency = button.attr("data-currency");
+            let price = button.find(".ticker-price");
+            let open = data[currency]?.open
+
+            if (price.html() !== open) {
+                price.animate({ opacity: 0 }, 200, function() {
+                    price.html(open);
+                    price.animate({ opacity: 1 }, 200);
+                });
+            }
+        });
+    })
+
+    function search(query) {
+        if (query === '') return EMPTY
+
         return from($.ajax({
             url: '/search',
             method: "GET",
@@ -35,48 +41,33 @@ $(function () {
         })).pipe();
     }
 
-    let throttledInput = fromEvent(searchBox, 'keyup').pipe(
-        map(event => event.target.value),
-        debounceTime(500),
+    const throttledInput = fromEvent(searchBox, 'keyup').pipe(
+        map(event => event.target.value)
+    );
+
+    const searchRequest = throttledInput.pipe(
+        debounceTime(100),
         distinctUntilChanged(),
-        switchMap(text => searchWikipedia(text))
+        switchMap(text => search(text))
     )
 
-    throttledInput.subscribe( data => {
-        data.data.forEach(function (currency) {
-                let tickerButton = new AddTickerButton(currency);
-                searchResults.append(tickerButton.element);
-        });
-    });
-
- /*
-    searchBox.on('input', function() {
-        let query = this.value.toLowerCase();
-        if (query === '') {
+    throttledInput.subscribe( text => {
+        if (text === '') {
             searchResults.hide();
-            return;
         } else {
             searchResults.show();
         }
+    })
 
-        function search(data) {
-            searchResults.empty();
-            data.data.forEach(function (currency) {
+    searchRequest.subscribe( data => {
+        searchResults.empty();
+        data.data.forEach(function (currency) {
+            if (!subscribedTickers.has(currency)) {
                 let tickerButton = new AddTickerButton(currency);
                 searchResults.append(tickerButton.element);
-            });
-        }
-
-        // Fetch matching tickers from server
-        $.ajax({
-            url: '/search',
-            method: 'GET',
-            data: { q: query },
-            success: search
+            }
         });
     });
-
-  */
 
     class TickerButton {
       constructor(currency) {
@@ -93,85 +84,87 @@ $(function () {
         return button;
       }
 
-      setupEventListeners(currency) {
-        this.element.on('click', '.remove-button', () => {
-          this.element.remove();
-          if (subscribedTickers.has(currency)) {
-              subscribedTickers.delete(currency);
-              unsubscribeFromTicker(currency);
-          }
-        });
-
-        this.element.on('click', '.add-button', () => {
-          this.element.remove();
-          if (!subscribedTickers.has(currency)) {
-            subscribedTickers.add(currency)
-            subscribeToTicker(currency)
-          }
-        });
-      }
+      setupEventListeners(currency) {}
     }
 
     class AddTickerButton extends TickerButton {
         createButtonElement() {
             let button = super.createButtonElement();
-            const addButton = $('<button>').addClass('add-button').text('+');
-            button.append(addButton)
+            this.addButton = $('<button>').addClass('add-button').text('+');
+            button.append(this.addButton)
             return button
+        }
+
+        setupEventListeners(currency) {
+            super.setupEventListeners(currency);
+
+            fromEvent(this.addButton, 'click')
+            .pipe(
+                tap(() => this.element.remove()),
+                switchMap(() => subscribeToTicker(currency)),
+                filter(() => !subscribedTickers.has(currency)),
+                tap(() => {
+                    subscribedTickers.add(currency)
+                    let ticker = new RemoveTickerButton(currency)
+                    addedTickers.append(ticker.element)
+                }),
+                catchError(error => {
+                    console.error(error);
+                    return EMPTY; // You can return an EMPTY observable in case of an error
+                })
+            )
+            .subscribe();
         }
     }
 
     class RemoveTickerButton extends TickerButton {
         createButtonElement() {
             let button = super.createButtonElement();
-            const removeButton = $('<button>').addClass('remove-button').text('-');
-            button.append(removeButton)
+            this.removeButton = $('<button>').addClass('remove-button').text('-');
+            button.append(this.removeButton)
             return button
+        }
+
+        setupEventListeners(currency) {
+            super.setupEventListeners(currency);
+
+            fromEvent(this.removeButton, 'click')
+            .pipe(
+                tap(() => this.element.remove()),
+                switchMap(() => unsubscribeFromTicker(currency)),
+                filter(() => subscribedTickers.has(currency)),
+                tap(() => {
+                    subscribedTickers.delete(currency)
+                }),
+                catchError(error => {
+                    console.error(error);
+                    return EMPTY; // You can return an EMPTY observable in case of an error
+                })
+            )
+            .subscribe();
         }
     }
 
     function subscribeToTicker(symbol) {
-        // Send subscription request to the server
-        fetch("/subscribe", {
+        let promise = $.ajax({
+            url: "/subscribe",
             method: "POST",
-            body: JSON.stringify({ symbol: symbol }),
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-        .then(function(response) {
-            if (response.ok) {
-                let ticker = new RemoveTickerButton(symbol)
-                addedTickers.append(ticker.element)
-                console.log("Subscription request successful");
-            } else {
-                console.error("Subscription request failed");
-            }
-        })
-        .catch(function(error) {
-            console.error("Error sending subscription request:", error);
+            data: JSON.stringify({ symbol: symbol }),
+            contentType: "application/json"
         });
+
+        return from(promise).pipe()
     }
 
     function unsubscribeFromTicker(symbol) {
-        // Send unsubscribe request to the server
-        fetch("/unsubscribe", {
+        let promise = $.ajax({
+            url: "/unsubscribe",
             method: "POST",
-            body: JSON.stringify({ symbol: symbol }),
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-        .then(function(response) {
-            if (response.ok) {
-                console.log("Unsubscription request successful");
-            } else {
-                console.error("Unsubscription request failed");
-            }
-        })
-        .catch(function(error) {
-            console.error("Error sending unsubscription request:", error);
+            data: JSON.stringify({ symbol: symbol }),
+            contentType: "application/json"
         });
+
+        return from(promise).pipe()
     }
 });
 

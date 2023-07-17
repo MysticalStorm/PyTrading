@@ -58,11 +58,11 @@ class Binance(Platform):
         try:
             async with self._socket_manager.kline_socket(ticker) as ts:
                 while 1:
-                    print(f"Socket created {ticker}", ts)
+                    print(f"Socket receive start: {ticker}", ts)
                     res = await asyncio.wait_for(ts.recv(), timeout=60.0)
                     kline = BinanceKLine(res)
                     self._klines.append(kline)
-                    print(f'recv {kline}')
+                    print(f'Receive symbol: {kline.symbol}, open price: {kline.open_price}')
         except asyncio.CancelledError:
             print(f"Cancelled {ticker}")
         except asyncio.TimeoutError:

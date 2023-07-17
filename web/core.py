@@ -96,13 +96,8 @@ class WebCore:
                     kline: Optional[KLine] = None
                     klines = await self.manager.klines()
                     if klines:
-                        kline = klines[-1]
-                    if kline:
-                        data = {
-                            "symbol": kline.symbol,
-                            "open": kline.open_price
-                        }
-                        # Convert the dictionary to JSON format
+                        data = {kline.symbol: {"open": kline.open_price} for kline in klines}
+                        # Convert the list of dictionaries to JSON format
                         json_data = json.dumps(data)
                         yield 'data: {}\n\n'.format(json_data)
                     await asyncio.sleep(1)

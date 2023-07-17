@@ -1,5 +1,9 @@
 /* main.css */
 
+html {
+    background: #464c43;
+}
+
 body {
     display: flex;
     flex-direction: row;
@@ -21,6 +25,19 @@ body {
 .ticker-price {
     color: #6fff00;
     padding-left: 5px;
+}
+
+#added-tickers {
+    border: 1px solid;
+}
+
+.number-style {
+    background-color: black;
+    border: 1px solid;
+    color: green;
+    padding: 5px;
+    font-size: 8px;
+    width: 60%;
 }
 
 .ticker-button {
