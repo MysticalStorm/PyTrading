@@ -1,6 +1,6 @@
 import asyncio
 
-from quart import Quart, render_template, request, stream_with_context, make_response
+from quart import Quart, render_template, request, stream_with_context, make_response, send_from_directory
 from database.core import Database
 import json
 import uvicorn
@@ -8,7 +8,7 @@ import hypercorn
 from hypercorn.asyncio import serve
 
 from trading.binance.core import Binance
-from trading.trading_manager import TradingManager
+from trading.adapter import TradingManager
 from trading.models.kline import KLine
 from typing import Optional
 import hashlib
@@ -105,6 +105,11 @@ class WebCore:
             response = await make_response(event_stream(), {'Content-Type': 'text/event-stream'})
             response.timeout = None  # No timeout for this route
             return response
+
+        # Route to serve JavaScript files
+        @app.route('/static/js/<path:filename>')
+        async def serve_js(filename):
+            return await send_from_directory('web/static/js', filename, mimetype='application/javascript')
 
     def run_hypercorn(self):
         from hypercorn.config import Config

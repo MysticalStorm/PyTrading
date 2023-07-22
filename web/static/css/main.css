@@ -11,15 +11,68 @@ body {
 
 .container {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    position: relative;
+    z-index: 0;
 }
 
 .left {
-    flex: 50%;
+    flex: 1;
+    padding: 10px;
 }
 
 .right {
-    flex: 50%;
+    flex: 1;
+    padding: 10px;
+}
+
+.top {
+    flex: 1; /* Change the flex value to adjust the height of the top div */
+    display: flex;
+    flex-direction: row;
+    padding: 10px; /* Add padding for better spacing */
+}
+
+.bottom {
+    flex: 1; /* Change the flex value to adjust the height of the bottom div */
+    overflow-y: auto; /* Add vertical scroll to the bottom div if needed */
+    padding: 10px; /* Add padding for better spacing */
+}
+
+#search-container {
+    position: relative;
+    max-width: 100%; /* Adjust the maximum width as needed */
+    margin: 0 auto; /* Center the search container horizontally */
+}
+
+#search-results {
+    position: absolute;
+    top: 100%; /* Position the search results below the search box */
+    left: 0;
+    max-width: 100%; /* Adjust the maximum width as needed */
+    max-height: 50vh; /* Set the maximum height to half of the viewport height */
+    overflow-y: auto; /* Add vertical scroll if needed */
+    background-color: #181717; /* Set the same background color as the search box */
+    color: white; /* Set text color for the search results */
+    border-radius: 0 0 0 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Add a shadow for visual effect */
+    z-index: 2; /* Set a higher z-index to make it appear on top of other elements */
+}
+
+#search-box {
+    /* Your existing styles for the search box */
+    background-color: #181717; /* Set the background color for the search box */
+    color: white; /* Set text color for the search box */
+    padding: 5px 10px; /* Add some padding to the search box for spacing */
+    border-radius: 5px 5px 0 0;
+}
+
+#clear-button {
+    padding: 5px 10px;
+    background-color: #ccc;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
 }
 
 .ticker-price {
@@ -29,6 +82,10 @@ body {
 
 #added-tickers {
     border: 1px solid;
+}
+
+.ticker-card {
+    background-color: #947645;
 }
 
 .number-style {

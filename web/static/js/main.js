@@ -1,16 +1,30 @@
 const { fromEvent, from, EMPTY } = rxjs;
 const { debounceTime, map, switchMap, catchError, distinctUntilChanged, tap, filter } = rxjs.operators;
+import { TickerCard, TickerButton } from "./buttons.js";
 
 $(function () {
     let subscribedTickers = new Set();
+
     let searchBox = $('#search-box');
     let searchResults = $('#search-results');
     let addedTickers = $('#added-tickers');
+    let details = $('#details');
+    let documentPublisher = fromEvent(document, 'click');
 
     let source = new EventSource("/stream");
     let sourcePublisher = fromEvent(source, 'message').pipe(
         map(event => JSON.parse(event.data))
     )
+
+    documentPublisher.subscribe( event => {
+        // Check if the clicked element is part of the search container or search results
+        if (!$(event.target).closest('#search-container').length) {
+            // Clicked outside the search container, clear the search box
+            $('#search-box').val('');
+            // Hide the search results
+            $('#search-results').hide();
+        }
+    });
 
     sourcePublisher.subscribe(data => {
         let dataArray = Object.entries(data).map(([key, value]) => `${key} - ${value?.open}`);
@@ -23,7 +37,7 @@ $(function () {
             let open = data[currency]?.open
 
             if (price.html() !== open) {
-                price.animate({ opacity: 0 }, 200, function() {
+                price.stop().animate({ opacity: 0 }, 200, function() {
                     price.html(open);
                     price.animate({ opacity: 1 }, 200);
                 });
@@ -69,24 +83,6 @@ $(function () {
         });
     });
 
-    class TickerButton {
-      constructor(currency) {
-        this.currency = currency;
-        this.element = this.createButtonElement();
-        this.setupEventListeners(currency);
-      }
-
-      createButtonElement() {
-        const button = $('<button>').addClass('ticker-button').attr('data-currency', this.currency);
-        const nameElement = $('<span>').addClass('ticker-name').text(this.currency);
-        const priceElement = $('<span>').addClass('ticker-price');
-        button.append(nameElement, priceElement);
-        return button;
-      }
-
-      setupEventListeners(currency) {}
-    }
-
     class AddTickerButton extends TickerButton {
         createButtonElement() {
             let button = super.createButtonElement();
@@ -100,13 +96,18 @@ $(function () {
 
             fromEvent(this.addButton, 'click')
             .pipe(
+                tap( event => event.stopPropagation() ),
                 tap(() => this.element.remove()),
                 switchMap(() => subscribeToTicker(currency)),
                 filter(() => !subscribedTickers.has(currency)),
                 tap(() => {
-                    subscribedTickers.add(currency)
-                    let ticker = new RemoveTickerButton(currency)
-                    addedTickers.append(ticker.element)
+                    subscribedTickers.add(currency);
+                    let ticker = new RemoveTickerButton(currency);
+                    addedTickers.append(ticker.element);
+
+                    let card = new TickerCard(currency);
+                    details.append(card.element);
+                    console.log("TEST" + details)
                 }),
                 catchError(error => {
                     console.error(error);
@@ -121,8 +122,8 @@ $(function () {
         createButtonElement() {
             let button = super.createButtonElement();
             this.removeButton = $('<button>').addClass('remove-button').text('-');
-            button.append(this.removeButton)
-            return button
+            button.append(this.removeButton);
+            return button;
         }
 
         setupEventListeners(currency) {
