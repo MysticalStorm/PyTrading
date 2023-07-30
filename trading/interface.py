@@ -58,3 +58,7 @@ class Platform(ABC):
     @abstractmethod
     def subscribe(self, ticker: str):
         pass
+
+    @abstractmethod
+    async def get_klines(self, symbol: str, start_date: str, end_date: str, interval: str, limit: int) -> [KLine]:
+        pass

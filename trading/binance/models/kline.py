@@ -1,29 +1,34 @@
 from trading.models.kline import KLine
+import json
+from decimal import Decimal
 
 
 class BinanceKLine(KLine):
     def __init__(self, json_data):
-        self._event_type = json_data['e']
-        self._event_time = json_data['E']
-        self._symbol = json_data['s']
+        if isinstance(json_data, str):
+            json_data = {}
 
-        kline_data = json_data['k']
-        self._kline_start_time = kline_data['t']
-        self._kline_end_time = kline_data['T']
-        self._kline_interval = kline_data['i']
-        self._first_trade_id = kline_data['f']
-        self._last_trade_id = kline_data['L']
-        self._open_price = kline_data['o']
-        self._close_price = kline_data['c']
-        self._high_price = kline_data['h']
-        self._low_price = kline_data['l']
-        self._base_volume = kline_data['v']
-        self._number_of_trades = kline_data['n']
-        self._is_final_bar = kline_data['x']
-        self._quote_asset_volume = kline_data['q']
-        self._taker_buy_base_asset_volume = kline_data['V']
-        self._taker_buy_quote_asset_volume = kline_data['Q']
-        self._ignore = kline_data['B']
+        self._event_type = json_data.get('e', None)
+        self._event_time = json_data.get('E', None)
+        self._symbol = json_data.get('s', None)
+
+        kline_data = json_data.get('k', {})
+        self._kline_start_time = kline_data.get('t', None)
+        self._kline_end_time = kline_data.get('T', None)
+        self._kline_interval = kline_data.get('i', None)
+        self._first_trade_id = kline_data.get('f', None)
+        self._last_trade_id = kline_data.get('L', None)
+        self._open_price = kline_data.get('o', None)
+        self._close_price = kline_data.get('c', None)
+        self._high_price = kline_data.get('h', None)
+        self._low_price = kline_data.get('l', None)
+        self._base_volume = kline_data.get('v', None)
+        self._number_of_trades = kline_data.get('n', None)
+        self._is_final_bar = kline_data.get('x', None)
+        self._quote_asset_volume = kline_data.get('q', None)
+        self._taker_buy_base_asset_volume = kline_data.get('V', None)
+        self._taker_buy_quote_asset_volume = kline_data.get('Q', None)
+        self._ignore = kline_data.get('B', None)
 
     @property
     def event_type(self) -> str:
@@ -62,8 +67,8 @@ class BinanceKLine(KLine):
         return self._open_price
 
     @property
-    def close_price(self) -> str:
-        return self._close_price
+    def close_price(self) -> Decimal:
+        return Decimal(self._close_price)
 
     @property
     def high_price(self) -> str:
@@ -100,3 +105,16 @@ class BinanceKLine(KLine):
     @property
     def ignore(self) -> str:
         return self._ignore
+
+
+class HistoricalKLine(BinanceKLine):
+    def __init__(self, json_data):
+        super().__init__(json_data)
+        json_data = json.loads(json_data)
+
+        self._kline_start_time = json_data[0]
+        self._open_price = json_data[1]
+        self._close_price = json_data[4]
+        self._high_price = json_data[2]
+        self._low_price = json_data[3]
+        self._base_volume = json_data[5]

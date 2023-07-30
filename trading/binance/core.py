@@ -6,7 +6,7 @@ from .asset import BinanceAsset
 from .balance import BinanceBalance
 import json
 import asyncio
-from .models.kline import BinanceKLine
+from .models.kline import BinanceKLine, HistoricalKLine
 
 
 class Binance(Platform):
@@ -53,6 +53,27 @@ class Binance(Platform):
     @property
     async def klines(self) -> [BinanceKLine]:
         return self._klines
+
+
+    async def get_klines(
+            self,
+            symbol: str,
+            start_date: str,
+            end_date: str,
+            interval: str,
+            limit: int
+    ) -> [HistoricalKLine]:
+        klines = await self._async_client.get_historical_klines(
+            symbol=symbol,
+            #start_str=start_date,
+            #end_str=end_date,
+            interval=interval,
+            limit=limit
+        )
+
+        klines_objects = [HistoricalKLine(json.dumps(kline)) for kline in klines]
+
+        return klines_objects
 
     async def subscribe(self, ticker: str):
         try:

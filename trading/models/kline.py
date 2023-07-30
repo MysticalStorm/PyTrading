@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+from decimal import Decimal
 
 class KLine(ABC):
     @property
@@ -49,7 +49,7 @@ class KLine(ABC):
 
     @property
     @abstractmethod
-    def close_price(self) -> str:
+    def close_price(self) -> Decimal:
         pass
 
     @property

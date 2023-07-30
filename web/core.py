@@ -91,11 +91,13 @@ class WebCore:
             @stream_with_context
             async def event_stream():
                 while True:
-                    # Here you would usually pull updates from your application.
-                    # Instead, we're going to generate a random number every second.
-                    kline: Optional[KLine] = None
                     klines = await self.manager.klines()
                     if klines:
+                        kline = klines[-1]
+                        if kline:
+                            rsi = await self.manager.calculate_rsi_for_symbol(kline.symbol)
+                            print(rsi)
+
                         data = {kline.symbol: {"open": kline.open_price} for kline in klines}
                         # Convert the list of dictionaries to JSON format
                         json_data = json.dumps(data)
