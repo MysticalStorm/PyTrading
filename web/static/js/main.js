@@ -129,6 +129,14 @@ $(function () {
         setupEventListeners(currency) {
             super.setupEventListeners(currency);
 
+            fromEvent(this.element, 'click')
+            .pipe(
+                tap(event => {
+                    window.location.href = `/details?currency=${currency}`;
+                })
+            )
+            .subscribe()
+
             fromEvent(this.removeButton, 'click')
             .pipe(
                 tap(() => this.element.remove()),

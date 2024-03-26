@@ -12,6 +12,14 @@ class StreamRoute(Route):
         self.manager = manager
 
     def setup_routes(self):
+        @self.app.route('/subscriptions', methods=['GET'])
+        async def subscriptions():
+            arrray_of_tickers = self.manager.subscriptions()
+            data = {"tickers": arrray_of_tickers}
+            # Convert the list of dictionaries to JSON format
+            json_data = json.dumps(data)
+            return json_data
+
         @self.app.route('/subscribe', methods=['POST'])
         async def subscribe():
             data = await request.json

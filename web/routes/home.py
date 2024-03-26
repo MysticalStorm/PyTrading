@@ -45,6 +45,18 @@ class HomeRoute(Route):
 
             return await render_template('home.html', message=message, css_hash=css_hash, js_hash=js_hash)
 
+        @self.app.route('/details', methods=['GET'])
+        async def details():
+            # Calculate the hash of the CSS file
+            css_path = os.path.join(self.app.static_folder, 'css', 'main.css')
+            css_hash = self.calculate_file_hash(css_path)
+
+            # Calculate the hash of the JS file
+            js_path = os.path.join(self.app.static_folder, 'js', 'details.js')
+            js_hash = self.calculate_file_hash(js_path)
+
+            return await render_template('details.html', css_hash=css_hash, js_hash=js_hash)
+
         # Route to serve JavaScript files
         @self.app.route('/static/js/<path:filename>')
         async def serve_js(filename):

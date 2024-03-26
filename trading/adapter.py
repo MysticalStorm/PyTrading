@@ -1,3 +1,5 @@
+from typing import List
+
 from .interface import *
 import asyncio
 from database.core import Database
@@ -42,9 +44,10 @@ class TradingManager:
         rsi = calculate_rsi(closes=[kline.close_price for kline in last_14_klines])
         alt_rsi = alt_calculate_rsi([kline.close_price for kline in last_14_klines])
         print(f"My RSI: {rsi} TradingRSI: {rsi_tradingview(d)[-1]} alt:{alt_rsi}")
-
-
         return rsi
+
+    async def subscriptions(self) -> List[str]:
+        return list(self.subscriptions.keys())
 
     async def subscribe(self, ticker):
         task = asyncio.create_task(self.platform.subscribe(ticker=ticker))
