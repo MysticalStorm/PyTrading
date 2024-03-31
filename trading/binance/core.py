@@ -7,6 +7,7 @@ from trading.binance.models.balance import BinanceBalance
 import json
 import asyncio
 from .models.kline import BinanceKLine, HistoricalKLine
+from .models.exchange_info import ExchangeInfo
 
 
 class Binance(Platform):
@@ -43,12 +44,9 @@ class Binance(Platform):
 
     @property
     async def tokens(self) -> [BinanceAsset]:
-        info = await self._async_client.get_exchange_info()
-        result = set([])
-        for symbol_info in info["symbols"]:
-            result.add(symbol_info["baseAsset"])
-            result.add(symbol_info["quoteAsset"])
-        return [BinanceAsset(name=token) for token in result]
+        info_json = await self._async_client.get_exchange_info()
+        info = ExchangeInfo.from_json(info_json)
+        return [BinanceAsset(name=symbol.symbol) for symbol in info.symbols]
 
     @property
     async def klines(self) -> [BinanceKLine]:

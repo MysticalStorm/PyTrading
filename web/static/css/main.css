@@ -9,11 +9,45 @@ body {
     flex-direction: row;
 }
 
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    color: white;
+    padding: 5px 20px;
+    position: fixed; /* This keeps the header at the top */
+    top: 0; /* Aligns the header at the top */
+    left: 0; /* Aligns the header to the left */
+    width: 100%; /* Makes the header extend full width */
+    box-sizing: border-box; /* Ensures padding doesn't add to the total width */
+    z-index: 1000; /* Ensures the header is above other content */
+}
+
+header .menu a, header .menu p, header .menu .search-container {
+    color: white;
+    text-decoration: none;
+    margin-right: 15px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    cursor: pointer; /* Makes the cursor change to the pointer hand, indicating clickability */
+    display: inline-block; /* Aligns items in a row and allows setting dimensions */
+}
+
 .container {
     display: flex;
     flex-direction: column;
     position: relative;
     z-index: 0;
+    padding-top: 60px; /* Adds space at the top so content isn't hidden behind the fixed header */
+    padding-left: 20px; /* Adds some spacing from the left */
+    padding-right: 20px; /* Adds some spacing from the right */
 }
 
 .left {
@@ -39,7 +73,7 @@ body {
     padding: 10px; /* Add padding for better spacing */
 }
 
-#search-container {
+.search-container {
     position: relative;
     max-width: 100%; /* Adjust the maximum width as needed */
     margin: 0 auto; /* Center the search container horizontally */

@@ -1,5 +1,5 @@
 from .core import Route
-from quart import Quart, render_template, request, stream_with_context, make_response, send_from_directory
+from quart import Quart, render_template, request, stream_with_context, make_response, send_from_directory, redirect, url_for
 import hashlib
 import os
 from trading.adapter import TradingManager
@@ -56,6 +56,10 @@ class HomeRoute(Route):
             js_hash = self.calculate_file_hash(js_path)
 
             return await render_template('details.html', css_hash=css_hash, js_hash=js_hash)
+
+        @self.app.route('/home', methods=['GET'])
+        async def about():
+            return redirect(url_for('home'))
 
         # Route to serve JavaScript files
         @self.app.route('/static/js/<path:filename>')

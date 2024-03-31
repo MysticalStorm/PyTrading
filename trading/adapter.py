@@ -50,6 +50,7 @@ class TradingManager:
         return list(self.subscriptions.keys())
 
     async def subscribe(self, ticker):
+        await self.platform.tokens
         task = asyncio.create_task(self.platform.subscribe(ticker=ticker))
         self.subscriptions[ticker] = task
 

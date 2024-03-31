@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="EN">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/7.8.1/rxjs.umd.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}?v={{ css_hash }}">
+    <script type="module" src="{{ url_for('serve_js', filename='buttons.js') }}?v={{ js_hash }}"></script>
+    <script type="module" src="{{ url_for('serve_js', filename='main.js') }}?v={{ js_hash }}"></script>
+    <title>Trading</title>
+</head>
+<body>
+    <header>
+        <nav class="menu">
+            <a href="{{ url_for('home') }}">Home</a>
+
+            <div class="search-container">
+                <p id="search-trigger">Search</p>
+                <div id="search-results" style="display: none;"></div>
+            </div>
+        </nav>
+        <div class="account-balance">
+            Balance: $1,000
+        </div>
+    </header>
+    <div class="container">
+        {% block content %}
+        <!-- Unique Page Content Goes Here -->
+        {% endblock %}
+    </div>
+
+    <!-- Global scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/7.8.1/rxjs.umd.min.js"></script>
+</body>
+</html>
