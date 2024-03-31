@@ -1,5 +1,18 @@
 from abc import ABC, abstractmethod
 from .models.kline import KLine
+from datetime import date
+
+
+class Price(ABC):
+    @property
+    @abstractmethod
+    def value(self) -> float:
+        pass
+
+    @property
+    @abstractmethod
+    def date(self) -> date:
+        pass
 
 
 class Asset(ABC):
@@ -18,8 +31,13 @@ class Asset(ABC):
     def locked(self) -> str:
         pass
 
+    @property
     @abstractmethod
-    def __init__(self, name: str, available_balance: str, locked: str):
+    def price(self) -> float:
+        pass
+
+    @abstractmethod
+    def __init__(self, name: str, available_balance: str, locked: str, price: float):
         pass
 
 

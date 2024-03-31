@@ -2,8 +2,8 @@ from private.credentials import *
 from binance.client import AsyncClient
 from binance.streams import BinanceSocketManager
 from ..interface import Platform
-from .asset import BinanceAsset
-from .balance import BinanceBalance
+from trading.binance.models.asset import BinanceAsset
+from trading.binance.models.balance import BinanceBalance
 import json
 import asyncio
 from .models.kline import BinanceKLine, HistoricalKLine
@@ -39,7 +39,7 @@ class Binance(Platform):
     @property
     async def all_tickers(self) -> [BinanceAsset]:
         tickers = await self._async_client.get_all_tickers()
-        return [BinanceAsset(name=symbol_info['symbol']) for symbol_info in tickers]
+        return [BinanceAsset.from_json(symbol_info) for symbol_info in tickers]
 
     @property
     async def tokens(self) -> [BinanceAsset]:

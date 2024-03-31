@@ -1,6 +1,6 @@
 from typing import List
-from ..interface import Balance
-from .asset import BinanceAsset
+from trading.interface import Balance
+from trading.binance.models.asset import BinanceAsset
 
 
 class BinanceBalance(Balance):
