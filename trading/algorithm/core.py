@@ -122,3 +122,31 @@ def alt_calculate_rsi(prices, period=14, round_rsi=True):
         return round(rsi, 2)
     else:
         return rsi
+
+'''
+    async def calculate_rsi_for_symbol(self, symbol: str) -> Decimal:
+        # Get the last 14 klines for the given symbol
+        end_date = int(datetime.timestamp(datetime.now()))
+        start_date = int((datetime.now() - timedelta(minutes=14)).timestamp())
+        last_14_klines = await self.platform.get_klines(
+            symbol=symbol,
+            start_date=str(start_date),
+            end_date=str(end_date),
+            interval='1m',
+            limit=100
+        )
+
+        # Print the dates of the klines in a human-readable format
+        for kline in last_14_klines:
+            date = datetime.fromtimestamp(kline.kline_start_time / 1000).strftime('%Y-%m-%d %H:%M:%S')
+            print(f"KLine date: {date} Open {kline.open_price} Close {kline.close_price}")
+
+        import pandas as pd
+        d = {'close': [kline.close_price for kline in last_14_klines]}
+        d = pd.DataFrame(data=d)
+
+        rsi = calculate_rsi(closes=[kline.close_price for kline in last_14_klines])
+        alt_rsi = alt_calculate_rsi([kline.close_price for kline in last_14_klines])
+        print(f"My RSI: {rsi} TradingRSI: {rsi_tradingview(d)[-1]} alt:{alt_rsi}")
+        return rsi
+'''

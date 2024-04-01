@@ -8,11 +8,10 @@ import json
 import asyncio
 from .models.kline import BinanceKLine, HistoricalKLine
 from .models.exchange_info import ExchangeInfo
+from typing import AsyncGenerator
 
 
 class Binance(Platform):
-    _klines = []
-
     def __init__(self):
         self._balance = None
         self._async_client = AsyncClient(api_key, secret_key, testnet=False)
@@ -48,11 +47,6 @@ class Binance(Platform):
         info = ExchangeInfo.from_json(info_json)
         return [BinanceAsset(name=symbol.symbol) for symbol in info.symbols]
 
-    @property
-    async def klines(self) -> [BinanceKLine]:
-        return self._klines
-
-
     async def get_klines(
             self,
             symbol: str,
@@ -63,8 +57,8 @@ class Binance(Platform):
     ) -> [HistoricalKLine]:
         klines = await self._async_client.get_historical_klines(
             symbol=symbol,
-            #start_str=start_date,
-            #end_str=end_date,
+            start_str=start_date,
+            end_str=end_date,
             interval=interval,
             limit=limit
         )
@@ -73,14 +67,14 @@ class Binance(Platform):
 
         return klines_objects
 
-    async def subscribe(self, ticker: str):
+    async def subscribe(self, ticker: str) -> AsyncGenerator[BinanceKLine, None]:
         try:
             async with self._socket_manager.kline_socket(ticker) as ts:
                 while 1:
                     print(f"Socket receive start: {ticker}", ts)
                     res = await asyncio.wait_for(ts.recv(), timeout=60.0)
                     kline = BinanceKLine(res)
-                    self._klines.append(kline)
+                    yield kline
                     print(f'Receive symbol: {kline.symbol}, open price: {kline.open_price}')
         except asyncio.CancelledError:
             print(f"Cancelled {ticker}")
@@ -88,4 +82,4 @@ class Binance(Platform):
             print(f"Timeout exceeded while waiting for data from the socket. {ticker}")
         finally:
             print(f"Finally {ticker}")
-            # await self._async_client.close_connection()
+            await self._async_client.close_connection()

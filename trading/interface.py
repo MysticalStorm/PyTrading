@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from .models.kline import KLine
 from datetime import date
+from typing import AsyncGenerator
 
 
 class Price(ABC):
@@ -74,7 +75,7 @@ class Platform(ABC):
         pass
 
     @abstractmethod
-    def subscribe(self, ticker: str):
+    def subscribe(self, ticker: str) -> AsyncGenerator[KLine, None]:
         pass
 
     @abstractmethod
