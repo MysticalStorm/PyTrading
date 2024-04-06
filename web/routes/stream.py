@@ -46,13 +46,15 @@ class StreamRoute(Route):
             else:
                 return {"error": "Invalid request"}
 
-        @self.app.route('/stream')
-        async def stream(ticker):
+        @self.app.route('/stream', methods=['GET'])
+        async def stream():
+            ticker = "BTCUSDT"
+
             @stream_with_context
             async def event_stream():
                 async for kline in await self.manager.subscribe(ticker):
                     if kline:
-                        data = {kline.symbol: {"open": kline.open_price} for kline in klines}
+                        data = {kline.symbol: {"open": kline.open_price}}
                         # Convert the list of dictionaries to JSON format
                         json_data = json.dumps(data)
                         yield 'data: {}\n\n'.format(json_data)

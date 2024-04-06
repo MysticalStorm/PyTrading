@@ -54,10 +54,6 @@ class Balance(ABC):
 
 
 class Platform(ABC):
-    @property
-    @abstractmethod
-    async def klines(self) -> [KLine]:
-        pass
 
     @property
     @abstractmethod
@@ -75,7 +71,7 @@ class Platform(ABC):
         pass
 
     @abstractmethod
-    def subscribe(self, ticker: str) -> AsyncGenerator[KLine, None]:
+    def subscribe(self, tickers: [str]) -> AsyncGenerator[KLine, None]:
         pass
 
     @abstractmethod

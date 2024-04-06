@@ -9,6 +9,8 @@ import asyncio
 from .models.kline import BinanceKLine, HistoricalKLine
 from .models.exchange_info import ExchangeInfo
 from typing import AsyncGenerator
+import json
+import websockets
 
 
 class Binance(Platform):
@@ -67,19 +69,30 @@ class Binance(Platform):
 
         return klines_objects
 
-    async def subscribe(self, ticker: str) -> AsyncGenerator[BinanceKLine, None]:
+    async def subscribe(self, tickers: [str]) -> AsyncGenerator[BinanceKLine, None]:
+        streams = [f"{ticker.lower()}@kline_1m" for ticker in tickers]
         try:
-            async with self._socket_manager.kline_socket(ticker) as ts:
-                while 1:
-                    print(f"Socket receive start: {ticker}", ts)
+            async with self._socket_manager.multiplex_socket(streams) as ts:
+                while True:
+                    print(f"Socket receive start: {tickers}", ts)
                     res = await asyncio.wait_for(ts.recv(), timeout=60.0)
                     kline = BinanceKLine(res)
-                    yield kline
+                    await self.send_unsubscribe_command(ts)
                     print(f'Receive symbol: {kline.symbol}, open price: {kline.open_price}')
+                    yield kline
+
         except asyncio.CancelledError:
-            print(f"Cancelled {ticker}")
+            print(f"Cancelled {tickers}")
         except asyncio.TimeoutError:
-            print(f"Timeout exceeded while waiting for data from the socket. {ticker}")
+            print(f"Timeout exceeded while waiting for data from the socket. {tickers}")
         finally:
-            print(f"Finally {ticker}")
+            print(f"Finally {tickers}")
             await self._async_client.close_connection()
+
+    async def send_unsubscribe_command(self, ws):
+        unsubscribe_message = {
+            "method": "UNSUBSCRIBE",
+            "params": ["ethusdt@kline_1m"],
+            "id": 1  # The ID can be any unique identifier
+        }
+        await asyncio.wait_for(ws.ws.send(json.dumps(unsubscribe_message)), timeout=10)

@@ -11,24 +11,20 @@ from typing import AsyncGenerator
 
 class TradingManager:
     def __init__(self, platform: Platform, db: Database):
-        self.subscriptions = {}
+        self.subscriptions = []
         self.platform = platform
         self.db = db
 
     async def tickers(self):
         return await self.platform.all_tickers
 
-    async def klines(self) -> [KLine]:
-        return await self.platform.klines
-
     async def subscriptions(self) -> List[str]:
-        return list(self.subscriptions.keys())
+        return list(self.subscriptions)
 
     async def subscribe(self, ticker) -> AsyncGenerator[KLine, None]:
-        return self.platform.subscribe(ticker)
+        self.subscriptions.append(ticker)
+        return self.platform.subscribe(self.subscriptions)
 
     async def unsubscribe(self, ticker):
-        if ticker in self.subscriptions:
-            task = self.subscriptions[ticker]
-            task.cancel()
-            del self.subscriptions[ticker]
+        self.subscriptions.remove(ticker)
+

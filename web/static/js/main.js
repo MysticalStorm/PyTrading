@@ -15,7 +15,7 @@ $(function () {
 
     sourcePublisher.subscribe(data => {
         let dataArray = Object.entries(data).map(([key, value]) => `${key} - ${value?.open}`);
-        $('#number').html(dataArray.join("<br/>")); // joining array elements with break line
+        // $('#number').html(dataArray.join("<br/>")); // joining array elements with break line
 
         addedTickers.find('.ticker-button').each(function() {
             let button = $(this);
