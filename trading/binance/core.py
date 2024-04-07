@@ -77,7 +77,6 @@ class Binance(Platform):
                     print(f"Socket receive start: {tickers}", ts)
                     res = await asyncio.wait_for(ts.recv(), timeout=60.0)
                     kline = BinanceKLine(res)
-                    await self.send_unsubscribe_command(ts)
                     print(f'Receive symbol: {kline.symbol}, open price: {kline.open_price}')
                     yield kline
 
@@ -88,11 +87,3 @@ class Binance(Platform):
         finally:
             print(f"Finally {tickers}")
             await self._async_client.close_connection()
-
-    async def send_unsubscribe_command(self, ws):
-        unsubscribe_message = {
-            "method": "UNSUBSCRIBE",
-            "params": ["ethusdt@kline_1m"],
-            "id": 1  # The ID can be any unique identifier
-        }
-        await asyncio.wait_for(ws.ws.send(json.dumps(unsubscribe_message)), timeout=10)
