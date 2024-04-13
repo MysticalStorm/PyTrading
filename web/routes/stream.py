@@ -48,17 +48,22 @@ class StreamRoute(Route):
 
         @self.app.route('/stream', methods=['GET'])
         async def stream():
-            ticker = "BTCUSDT"
+            query = request.args.get('q', default="", type=str)
+            ticker = query.lower()
 
             @stream_with_context
             async def event_stream():
-                async for kline in await self.manager.subscribe(ticker):
-                    if kline:
-                        data = {kline.symbol: {"open": kline.open_price}}
-                        # Convert the list of dictionaries to JSON format
-                        json_data = json.dumps(data)
-                        yield 'data: {}\n\n'.format(json_data)
-                    await asyncio.sleep(1)
+                try:
+                    async for kline in await self.manager.subscribe(ticker):
+                        if kline:
+                            data = {kline.symbol: {"open": kline.open_price}}
+                            json_data = json.dumps(data)
+                            yield 'data: {}\n\n'.format(json_data)
+                        await asyncio.sleep(1)
+                except Exception as e:
+                    # Log the exception which might indicate a disconnect or another issue
+                    print("Stream error:", str(e))
+                    await self.manager.unsubscribe(ticker)
 
             response = await make_response(event_stream(), {'Content-Type': 'text/event-stream'})
             response.timeout = None  # No timeout for this route

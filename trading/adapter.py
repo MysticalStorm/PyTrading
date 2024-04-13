@@ -27,4 +27,6 @@ class TradingManager:
 
     async def unsubscribe(self, ticker):
         self.subscriptions.remove(ticker)
+        await asyncio.sleep(0.1)
+        print("Unsubscribing", ticker)
 

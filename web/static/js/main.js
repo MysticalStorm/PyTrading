@@ -7,30 +7,30 @@ $(function () {
     let addedTickers = $('#added-tickers');
     let details = $('#details');
 
+    function subscribeOnStream(ticker) {
+        let source = new EventSource(`/stream?ticker=${ticker}`);
+        let sourcePublisher = fromEvent(source, 'message').pipe(
+            map(event => JSON.parse(event.data))
+        )
 
-    let source = new EventSource("/stream");
-    let sourcePublisher = fromEvent(source, 'message').pipe(
-        map(event => JSON.parse(event.data))
-    )
+        sourcePublisher.subscribe(data => {
+            let dataArray = Object.entries(data).map(([key, value]) => `${key} - ${value?.open}`);
 
-    sourcePublisher.subscribe(data => {
-        let dataArray = Object.entries(data).map(([key, value]) => `${key} - ${value?.open}`);
-        // $('#number').html(dataArray.join("<br/>")); // joining array elements with break line
+            addedTickers.find('.ticker-button').each(function() {
+                let button = $(this);
+                let currency= button.attr("data-currency");
+                let price= button.find(".ticker-price");
+                let open = data[currency]?.open
 
-        addedTickers.find('.ticker-button').each(function() {
-            let button = $(this);
-            let currency = button.attr("data-currency");
-            let price = button.find(".ticker-price");
-            let open = data[currency]?.open
-
-            if (price.html() !== open) {
-                price.stop().animate({ opacity: 0 }, 200, function() {
-                    price.html(open);
-                    price.animate({ opacity: 1 }, 200);
-                });
-            }
-        });
-    })
+                if (price.html() !== open) {
+                    price.stop().animate({ opacity: 0 }, 200, function() {
+                        price.html(open);
+                        price.animate({ opacity: 1 }, 200);
+                    });
+                }
+            });
+        })
+    }
 
     class AddTickerButton extends TickerButton {
         createButtonElement() {
@@ -56,7 +56,7 @@ $(function () {
 
                     let card = new TickerCard(currency);
                     details.append(card.element);
-                    console.log("TEST" + details)
+                    console.log("Tap: " + details)
                 }),
                 catchError(error => {
                     console.error(error);
