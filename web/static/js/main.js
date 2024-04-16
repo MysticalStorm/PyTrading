@@ -8,11 +8,13 @@ $(function () {
     let details = $('#details');
 
     function subscribeOnStream(ticker) {
+        let bag = disposedBag("subscribe-stream")
         let source = new EventSource(`/stream?ticker=${ticker}`);
         let sourcePublisher = fromEvent(source, 'message').pipe(
             map(event => JSON.parse(event.data))
         )
 
+        subscribe(
         sourcePublisher.subscribe(data => {
             let dataArray = Object.entries(data).map(([key, value]) => `${key} - ${value?.open}`);
 
@@ -29,7 +31,7 @@ $(function () {
                     });
                 }
             });
-        })
+        }), bag)
     }
 
     class AddTickerButton extends TickerButton {
