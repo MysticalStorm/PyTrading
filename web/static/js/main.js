@@ -33,6 +33,7 @@ $(function () {
             });
         }), bag)
     }
+    // TODO: Need create mechanism for subscrybing. Better different sockets or one? If one thjis solution not work
 
     class AddTickerButton extends TickerButton {
         createButtonElement() {
